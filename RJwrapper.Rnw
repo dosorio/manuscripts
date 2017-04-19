@@ -1,3 +1,21 @@
+\documentclass[a4paper]{report}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{RJournal}
+\usepackage{amsmath,amssymb,array}
+\usepackage{booktabs}
+\usepackage{framed}
+%% load any required packages here
+\begin{document}
+%% do not edit, for illustration only
+\sectionhead{Contributed research article}
+\volume{XX}
+\volnumber{YY}
+\year{20ZZ}
+\month{AAAA}
+
+%% replace RJtemplate with your article
+\begin{article}
 % !TeX root = RJwrapper.tex
 \title{minval: An R package for MINimal VALidation of stoichiometric reactions}
 \author{by Daniel Osorio, Janneth Gonzalez and Andres Pinzon-Velasco}
@@ -5,14 +23,14 @@
 \maketitle
 
 \abstract{
-Genome-scale metabolic reconstructions, a compilation of all stoichiometric reactions that can describe the entire cellular metabolism of an organism, have become an indispensable tool for our understanding of biological phenomena, covering fields that range from systems biology to bioengineering. Interrogation of metabolic reconstructions are generally carried through Flux Balance Analysis, an optimization method in which the biological sense of the optimal solution is highly sensitive to thermodynamic unbalance, caused by the presence of stoichiometric reactions whose compounds are not produced or consumed in any other reaction (orphan metabolites) and by mass unbalance.  The \pkg{minval} package was designed as a tool to identify orphan metabolites and evaluate the mass and charge balance of stoichiometric reactions. The package also includes functions to write models in TSV and SBML formats, extract all reactants, products, metabolite names and compartments from a metabolic reconstruction. Moreover specific functions to download different releases of the Chemical Entities of Biological Interest (ChEBI) database are also included.
+A genome-scale metabolic reconstruction is a compilation of all stoichiometric reactions that can describe the entire cellular metabolism of an organism, and they have become an indispensable tool for our understanding of biological phenomena, covering fields that range from systems biology to bioengineering. Interrogation of metabolic reconstructions are generally carried through Flux Balance Analysis (FBA), an optimization method in which the biological sense of the optimal solution is highly sensitive to thermodynamic unbalance, caused by the presence of stoichiometric reactions whose compounds are not produced or consumed in any other reaction (orphan metabolites) and by mass unbalance. The \pkg{minval} package was designed as a tool to identify orphan metabolites and evaluate the mass and charge balance of stoichiometric reactions. The package also includes functions to characterize and write models in TSV and SBML formats, extract all reactants, products, metabolite names and compartments from a metabolic reconstruction.
 }
 
 \section{Introduction}
-A chemical reaction is a process where a set of chemical compounds called \emph{reactants} are transformed into another compounds called \emph{products} \citep{Chen2013}. The accepted way to represent a chemical reaction is called a \emph{stoichiometric reaction}, where reactants are placed on the left and the products on the right separated by an arrow which indicates the direction of the reaction, as shown in equation \ref{sr} \citep{Hendrickson1997}. In biochemistry a set of chemical reactions that transform a substrate into a product, after several chemical transformations is called a metabolic pathway \citep{Lambert2011}. The compilation of all stoichiometric reactions included in all metabolic pathways that can describe the entire cellular metabolism encoded in the genome of a particular organism is known as a \emph{genome-scale metabolic reconstruction} \citep{Park2009} and has become an indispensable tool for studying metabolism of biological entities at the systems level \citep{Thiele2010}.
+A chemical reaction is a process where a set of chemical compounds called \emph{reactants} are transformed into others called \emph{products} \citep{Chen2013}. The accepted way to represent a chemical reaction is called a \emph{stoichiometric reaction}, where reactants are placed on the left and the products on the right separated by an arrow which indicates the direction of the reaction, as shown in equation \ref{eq:biochemicalReaction} \citep{Hendrickson1997}. In biochemistry, a set of chemical reactions that transform a substrate into a product, after several chemical transformations is called a metabolic pathway \citep{Lambert2011}. The compilation of all stoichiometric reactions included in all metabolic pathways that can describe the entire cellular metabolism encoded in the genome of a particular organism is known as a \emph{genome-scale metabolic reconstruction} \citep{Park2009} and has become an indispensable tool for studying metabolism of biological entities at the systems level \citep{Thiele2010}.
 
 \begin{equation}
-\label{sr}
+\label{eq:biochemicalReaction}
 \overbrace{\underbrace{1}_{coefficient}\ \underbrace{cis-aconitic\ acid}_{metabolite\ name}\underbrace{[c_a]}_{compartment}\ +\ 1\ water[c_a]}^{reactants} \underbrace{\Rightarrow}_{directionallity} \overbrace{1\ isocitric\ acid[c_a]}^{products}
 \end{equation}
 
@@ -20,25 +38,16 @@ Reconstruction of genome-scale metabolic models starts with a compilation of all
 
 Genome-scale metabolic reconstructions are usually interrogated through FBA (\emph{Flux Balance Analysis}), an optimization method that allows us to understand the metabolic status of the cell, to improve the production capability of a desired product or make a rapid evaluation of cellular physiology at genome-scale \citep{Kim2008,Park2009}. Nevertheless FBA is sensitive to thermodynamic unbalance, so in order to asses the validity of a biological extrapolation (i.e. an optimal solution) from a FBA analysis it is mandatory to avoid this type of unbalancing in mass conservation through all model reactions \citep{Reznik2013}. Another drawback when determining  the validity of a metabolic reconstruction is the presence of  reactions with compounds that are not produced or consumed in any other reaction (dead ends), generally known as orphan metabolites  \citep{Park2009, Thiele2010}. The presence of this type of metabolites can be problematic, since they lead to an artificial cellular  accumulation of  metabolism products which therefore  bias our biological conclusions. Tracking these metabolites is also a time consuming process, which most of the time has to be performed manually or partially automatized by in-house scripting. Given that typical genome-scale metabolic reconstructions account for hundreds or thousands of biochemical reactions, the manually curation of these models is a task that can lead to both, the introduction of new errors and to overlook some others.
 
-Two of the most popular implementations of FBA analysis are \pkg{COBRA} \citep{Becker2007} and \pkg{RAVEN} \citep{Agren2013} which operate as tools under the commercial MATLAB$^{\circledR}$ environment.  On the R environment side  \CRANpkg{sybil} and \CRANpkg{abcdeFBA} are the most common ones. \pkg{COBRA} and \pkg{RAVEN} include  some functions for mass and charge balance (\code{checkMassChargeBalance} and \code{getElementalBalance} respectively). These functions identify orphan metabolites and mass unbalanced reactions, based in the chemical formula or the IUPAC International Chemical Identifier (InChI) supplied manually by the user for each metabolite included in the genome-scale metabolic reconstruction. 
+Two of the most popular implementations of FBA analysis are \pkg{COBRA} \citep{Becker2007} and \pkg{RAVEN} \citep{Agren2013} which operate as tools under the commercial MATLAB$^{\circledR}$ environment.  On the R environment side  \CRANpkg{sybil} and \CRANpkg{abcdeFBA} are the most common ones. \pkg{COBRA} and \pkg{RAVEN} include  some functions for mass and charge balance (\code{checkMassChargeBalance} and \code{getElementalBalance} respectively). These functions identify orphan metabolites and mass unbalanced reactions, based in the chemical formula or the IUPAC International Chemical Identifier (InChI) supplied manually by the user for each metabolite included in the genome-scale metabolic reconstruction.
 
 With the aim of minimize the manual introduction of thousands of species in a genome-scale reconstruction as well as to avoid the sometimes limiting use of licensed software, we have developed the \CRANpkg{minval} package. It includes thirteen functions to evaluate mass balance and extract all reactants, products, orphan metabolites, metabolite names and compartments for a set of stoichiometric reactions, moreover specific functions to map compound names associated to the Chemical Entities of Biological Interest (ChEBI) database are also included, thus extending the capabilities of state of the art packages.
 
-As to this version we use the included ``\code{glugln}'' dataset \citep{NelsonE.2015}, 128 non-exchange/sink stoichiometric reactions from the reconstruction of the glutamate/glutamine cycle constructed in-house using the KEGG database , as an example for each function included in the \pkg{minval} package with the aim to show their potential use.
-
-
-%$\Delta m_{sys} = m_{exits}-m_{inlets} = 0$
-%$\dfrac{\delta m_{sys}}{\delta t}=0$
+As to this version we use the included \code{glugln} dataset \citep{NelsonE.2015}, 128 non-exchange/sink stoichiometric reactions from the reconstruction of the glutamate/glutamine cycle constructed in-house using the KEGG database , as an example for each function included in the \pkg{minval} package with the aim to show their potential use.
 
 \section{Installation and functions}
 \pkg{minval} includes thirteen functions and is available for download and installation from CRAN, the
 Comprehensive R Archive Network. To install and load it, just type:
-\begin{Schunk}
-\begin{Sinput}
-> install.packages("minval")
-> library(minval)
-\end{Sinput}
-\end{Schunk}
+
 The \pkg{minval} package requires R version 2.10 or higher. Development releases of the package are available on the GitHub repository \url{http://github.com/dosorio/minval}.
 \subsection{Inputs and syntaxis}
 The functions included in \pkg{minval} package take as input a string list with stoichiometric reactions. The data loading from traditional human-readable spreadsheets can be carried out through other CRAN-available packages such as \CRANpkg{gdata}, \CRANpkg{readxl} or \CRANpkg{xlsx}. Each reaction string must contain metabolite names, with an optional compartment label between square brackets. The metabolites should be separated by a plus symbol (\code{+}) between two blank spaces and may have just one stoichiometric number before the name. The reactants should be separated from products by an arrow using the following symbol \code{=>} for irreversible reactions and \code{<=>} for reversible reactions.
@@ -75,8 +84,8 @@ The \code{metabolites} function automatically identifies and lists  all metaboli
 > metabolites("FADH2[m_a] + ubiquinone-0[m_a] => FAD[m_a] + Ubiquinol[m_a]")
 \end{Sinput}
 \begin{Soutput}
-[1] "FADH2[m_a]"        "ubiquinone-0[m_a]" "FAD[m_a]"         
-[4] "Ubiquinol[m_a]"   
+[1] "FADH2[m_a]"        "ubiquinone-0[m_a]" "FAD[m_a]"
+[4] "Ubiquinol[m_a]"
 \end{Soutput}
 As was mentioned before, the report option without compartment was added:
 \begin{Sinput}
@@ -84,7 +93,7 @@ As was mentioned before, the report option without compartment was added:
 +             woCompartment = TRUE)
 \end{Sinput}
 \begin{Soutput}
-[1] "FADH2"        "ubiquinone-0" "FAD"          "Ubiquinol"   
+[1] "FADH2"        "ubiquinone-0" "FAD"          "Ubiquinol"
 \end{Soutput}
 \end{Schunk}
 \subsection{Orphan Metabolites}
@@ -95,46 +104,46 @@ Orphan metabolites, compounds that are not produced or consumed in any other rea
 > orphan.reactants(glugln)
 \end{Sinput}
 \begin{Soutput}
- [1] "alpha-D-Glucose 6-phosphate[r_n]"    "water[r_n]"                         
- [3] "2,3-bisphospho-D-glyceric acid[r_n]" "GTP[c_n]"                           
- [5] "oxaloacetic acid[m_n]"               "citric acid[c_n]"                   
- [7] "coenzyme A[c_n]"                     "Quinone[m_n]"                       
- [9] "D-Glutamine[m_n]"                    "L-Glutamine[m_n]"                   
-[11] "FADH2[m_n]"                          "oxygen atom[m_n]"                   
-[13] "Ferrocytochrome c2[m_n]"             "diphosphate(4-)[m_n]"               
-[15] "alpha-D-Glucose 6-phosphate[r_a]"    "water[r_a]"                         
-[17] "2,3-bisphospho-D-glyceric acid[r_a]" "GTP[c_a]"                           
-[19] "hydrogencarbonate[m_a]"              "citric acid[c_a]"                   
-[21] "coenzyme A[c_a]"                     "Quinone[m_a]"                       
-[23] "L-glutamic acid[c_a]"                "Ammonia[c_a]"                       
-[25] "FADH2[m_a]"                          "oxygen atom[m_a]"                   
-[27] "Ferrocytochrome c2[m_a]"             "diphosphate(4-)[m_a]"               
+[1] "alpha-D-Glucose 6-phosphate[r_n]"    "water[r_n]"
+[3] "2,3-bisphospho-D-glyceric acid[r_n]" "GTP[c_n]"
+[5] "oxaloacetic acid[m_n]"               "citric acid[c_n]"
+[7] "coenzyme A[c_n]"                     "Quinone[m_n]"
+[9] "D-Glutamine[m_n]"                    "L-Glutamine[m_n]"
+[11] "FADH2[m_n]"                          "oxygen atom[m_n]"
+[13] "Ferrocytochrome c2[m_n]"             "diphosphate(4-)[m_n]"
+[15] "alpha-D-Glucose 6-phosphate[r_a]"    "water[r_a]"
+[17] "2,3-bisphospho-D-glyceric acid[r_a]" "GTP[c_a]"
+[19] "hydrogencarbonate[m_a]"              "citric acid[c_a]"
+[21] "coenzyme A[c_a]"                     "Quinone[m_a]"
+[23] "L-glutamic acid[c_a]"                "Ammonia[c_a]"
+[25] "FADH2[m_a]"                          "oxygen atom[m_a]"
+[27] "Ferrocytochrome c2[m_a]"             "diphosphate(4-)[m_a]"
 \end{Soutput}
- following the protocol proposed by \cite{Thiele2010}. In this example we show the option added to \code{orphan.*} functions, that permits to report the orphan metabolites as a list grouped by compartment:
+following the protocol proposed by \cite{Thiele2010}. In this example we show the option added to \code{orphan.*} functions, that permits to report the orphan metabolites as a list grouped by compartment:
 \begin{Sinput}
 > orphan.products(glugln, byCompartment = TRUE)
 \end{Sinput}
 \begin{Soutput}
 $r_n
-[1] "alpha-D-Glucose[r_n]"           "phosphate(3-)[r_n]"            
+[1] "alpha-D-Glucose[r_n]"           "phosphate(3-)[r_n]"
 [3] "2-phospho-D-glyceric acid[r_n]"
 
 $c_n
-[1] "GDP[c_n]"         "(S)-Lactate[c_n]" "acetyl-CoA[c_n]" 
+[1] "GDP[c_n]"         "(S)-Lactate[c_n]" "acetyl-CoA[c_n]"
 
 $m_n
-[1] "Hydroquinone[m_n]"       "D-glutamic acid[m_n]"   
+[1] "Hydroquinone[m_n]"       "D-glutamic acid[m_n]"
 [3] "FAD[m_n]"                "Ferricytochrome c2[m_n]"
 
 $r_a
-[1] "alpha-D-Glucose[r_a]"           "phosphate(3-)[r_a]"            
+[1] "alpha-D-Glucose[r_a]"           "phosphate(3-)[r_a]"
 [3] "2-phospho-D-glyceric acid[r_a]"
 
 $c_a
 [1] "GDP[c_a]"         "(S)-Lactate[c_a]" "acetyl-CoA[c_a]"  "L-Glutamine[c_a]"
 
 $m_a
-[1] "Hydroquinone[m_a]"       "FAD[m_a]"               
+[1] "Hydroquinone[m_a]"       "FAD[m_a]"
 [3] "Ferricytochrome c2[m_a]"
 \end{Soutput}
 \end{Schunk}
@@ -177,9 +186,9 @@ The \code{chebi.candidates} function takes a compound name as input, compares it
 > head(candidates)
 \end{Sinput}
 \begin{Soutput}
-[1] "acetoacetyl-CoA"                 "acetyl-CoA"                     
-[3] "(1-hydroxycyclohexyl)acetyl-CoA" "cinnamoyl-CoA"                  
-[5] "2-methylacetoacetyl-CoA"         "phenylacetyl-CoA"               
+[1] "acetoacetyl-CoA"                 "acetyl-CoA"
+[3] "(1-hydroxycyclohexyl)acetyl-CoA" "cinnamoyl-CoA"
+[5] "2-methylacetoacetyl-CoA"         "phenylacetyl-CoA"
 \end{Soutput}
 The \code{to.ChEBI} function translates the compounds names of a stoichiometric reaction into their corresponding identifier or molecular formula in the ChEBI database. In this example we show how to use the \code{to.ChEBI} function for the Ubiquinol and FAD production reaction in astrocytes mitochondrias.
 \begin{Sinput}
@@ -202,7 +211,7 @@ Thermodynamic unbalance of genome-scale metabolic reconstructions can also be pr
 > unbalanced(glugln[1:20])
 \end{Sinput}
 \begin{Soutput}
- [1] FALSE  TRUE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE
+[1] FALSE  TRUE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE
 [13] FALSE  TRUE FALSE FALSE  TRUE  TRUE  TRUE  TRUE
 \end{Soutput}
 The \code{unbalanced} function also include an option to show the molecular formula of mass unbalanced formulas through the option \code{show.formulas}.
@@ -210,20 +219,20 @@ The \code{unbalanced} function also include an option to show the molecular form
 > unbalanced(glugln[1:20], show.formulas = TRUE)
 \end{Sinput}
 \begin{Soutput}
-     [,1]                                                                                                                                                  
-[1,] "alpha-D-Glucose 6-phosphate[r_n] + water[r_n] => alpha-D-Glucose[r_n] + phos ..."                                                          
-[2,] "beta-D-fructofuranose 1,6-bisphosphate[c_n] + water[c_n] => beta-D-fructofur ..."                             
+[,1]
+[1,] "alpha-D-Glucose 6-phosphate[r_n] + water[r_n] => alpha-D-Glucose[r_n] + phos ..."
+[2,] "beta-D-fructofuranose 1,6-bisphosphate[c_n] + water[c_n] => beta-D-fructofur ..."
 [3,] "D-Glyceraldehyde 3-phosphate[c_n] + phosphate(3-)[c_n] + NAD(+)[c_n] <=> 3-p ..."
-[4,] "ATP[c_n] + 3-phosphoglyceric acid[c_n] <=> ADP[c_n] + 3-phosphonato-D-glycer ..."                                                  
-[5,] "3-phosphonato-D-glyceroyl phosphate(4-)[c_n] => 2,3-bisphospho-D-glyceric ac ..."                                                                 
-[6,] "2,3-bisphospho-D-glyceric acid[c_n] + water[c_n] => 3-phosphoglyceric acid[c ..."                                                
-     [,2]                                                                         
-[1,] "1 C6H13O9P + 1 H2O => 1 C6H12O6 + 1 O4P"                                    
-[2,] "1 C6H14O12P2 + 1 H2O => 1 C6H13O9P + 1 O4P"                                 
+[4,] "ATP[c_n] + 3-phosphoglyceric acid[c_n] <=> ADP[c_n] + 3-phosphonato-D-glycer ..."
+[5,] "3-phosphonato-D-glyceroyl phosphate(4-)[c_n] => 2,3-bisphospho-D-glyceric ac ..."
+[6,] "2,3-bisphospho-D-glyceric acid[c_n] + water[c_n] => 3-phosphoglyceric acid[c ..."
+[,2]
+[1,] "1 C6H13O9P + 1 H2O => 1 C6H12O6 + 1 O4P"
+[2,] "1 C6H14O12P2 + 1 H2O => 1 C6H13O9P + 1 O4P"
 [3,] "1 C3H7O6P + 1 O4P + 1 C21H28N7O14P2 <=> 3 C3H4O10P2 + 1 C21H29N7O14P2 + 1 H"
-[4,] "1 C10H16N5O13P3 + 3 C3H7O7P <=> 1 C10H15N5O10P2 + 3 C3H4O10P2"              
-[5,] "3 C3H4O10P2 => 2 C3H8O10P2"                                                 
-[6,] "2 C3H8O10P2 + 1 H2O => 3 C3H7O7P + 1 O4P"                                   
+[4,] "1 C10H16N5O13P3 + 3 C3H7O7P <=> 1 C10H15N5O10P2 + 3 C3H4O10P2"
+[5,] "3 C3H4O10P2 => 2 C3H8O10P2"
+[6,] "2 C3H8O10P2 + 1 H2O => 3 C3H7O7P + 1 O4P"
 \end{Soutput}
 \end{Schunk}
 
@@ -231,26 +240,30 @@ The \code{unbalanced} function also include an option to show the molecular form
 We introduced the \pkg{minval} package to evaluate mass balancing correctness of metabolic reconstructions and to extract all reactants, products, orphan metabolites, metabolite names and compartments for a set of stoichiometric reactions, which together represent the minimal validation that should be performed in a genome-scale metabolic reconstruction. We also show in a step by step fashion, how this minimal evaluation process of mass balance can be performed using the 128 non-exchange reactions included in the glutamate/glutamine cycle included in the ``\code{glugln}'' dataset. We also showed some examples of metabolite names - ChEBI database association procedures.
 
 \section{Acknowledgements}
-DO and JG  were supported by the Pontificia Universidad Javeriana (Grant ID 5619, 6371, 6375) 
-\bibliography{Osorio-Gonzalez-PinzonVelazco.bib}
+DO and JG  were supported by the Pontificia Universidad Javeriana (Grant ID 5619, 6371, 6375)
+\bibliography{Osorio-Gonzalez-Pinzon.bib}
 
 \address{Daniel Osorio\\
-  Grupo de Investigación en Bioinformática y Biología de Sistemas\\ 
-  Instituto de Genética, Universidad Nacional de Colombia\\
-  Bogotá\\
-  Colombia\\}
+Grupo de Investigación en Bioinformática y Biología de Sistemas\\
+Instituto de Genética, Universidad Nacional de Colombia\\
+Bogotá\\
+Colombia\\}
 \email{dcosorioh@unal.edu.co}
 
 \address{Janneth Gonzalez\\
-  Grupo de Investigación en Bioquímica Experimental y Computacional\\
-  Facultad de Ciencias, Pontificia Universidad Javeriana\\
-  Bogotá\\
-  Colombia\\}
+Grupo de Investigación en Bioquímica Experimental y Computacional\\
+Facultad de Ciencias, Pontificia Universidad Javeriana\\
+Bogotá\\
+Colombia\\}
 \email{janneth.gonzalez@javeriana.edu.co}
 
 \address{Andres Pinzon-Velasco\\
-  Grupo de Investigación en Bioinformática y Biología de Sistemas\\ 
-  Instituto de Genética, Universidad Nacional de Colombia\\
-  Bogotá\\
-  Colombia\\}
+Grupo de Investigación en Bioinformática y Biología de Sistemas\\
+Instituto de Genética, Universidad Nacional de Colombia\\
+Bogotá\\
+Colombia\\}
 \email{ampinzonv@unal.edu.co}
+
+\end{article}
+
+\end{document}
