@@ -1,0 +1,14 @@
+
+*.aux
+
+*.bbl
+
+*.blg
+
+*.brf
+
+*.log
+
+RJwrapper-concordance.tex
+
+RJwrapper.synctex.gz
