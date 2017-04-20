@@ -43,7 +43,7 @@ Two of the most popular implementations of FBA analysis are \pkg{COBRA} \citep{B
 
 With the aim of minimizing the manual introduction of thousands of chemical formulas in a genome-scale reconstruction as well as to avoid the sometimes limiting use of licensed software, we have developed the \CRANpkg{minval} package. The \CRANpkg{minval} package includes twelve functions designed to characterize, check and depurate metabolic reconstructions before its interrogation through Flux Balance Analysis (FBA).
 
-To show the potential use of the functions included into the \CRANpkg{minval} package, a human-readable model composed by a set of 19 stoichiometric reactions that represent an model of the glycolysis process was included. Glycolysis is the metabolic pathway that converts a molecule of glucose (C$_{6}$H$_{12}$O$_{6}$), into two molecules of pyruvate (CH$_{3}$COCOO$^{-}$ + H$^{+}$) throught a  sequence of ten enzyme-catalyzed reactions. Glycolysis occurs in most organisms in the cytosol of the cell and can be summarized as follows: \code{1 alpha-D-Glucose[c] + 2 NAD+[c] + 2 ADP[c] + 2 Orthophosphate[c] =>\ 2 Pyruvate[c] + 2 NADH[c] + 2 H+[c] + 2 ATP[c] + 2 H2O[c]}
+To show the potential use of the functions included into the \CRANpkg{minval} package, a human-readable model composed by a set of 19 stoichiometric reactions that represent the glycolysis process was included. Glycolysis is the metabolic pathway that converts a molecule of glucose (C$_{6}$H$_{12}$O$_{6}$), into two molecules of pyruvate (CH$_{3}$COCOO$^{-}$ + H$^{+}$) through a  sequence of ten enzyme-catalyzed reactions. Glycolysis occurs in most organisms in the cytosol of the cell and can be summarized as follows: \code{1 alpha-D-Glucose[c] + 2 NAD+[c] + 2 ADP[c] + 2 Orthophosphate[c] =>\ 2 Pyruvate[c] + 2 NADH[c] + 2 H+[c] + 2 ATP[c] + 2 H2O[c]}
 
 \section{Installation and functions}
 The \pkg{minval} package includes twelve functions and is available for download and installation from CRAN, the
@@ -52,11 +52,11 @@ Comprehensive R Archive Network. To install and load it, just type:
 install.packages("minval")
 library(minval)
 @
-\noindent The \pkg{minval} package requires an R version 2.10 or higher. Development releases of the package are available on the GitHub repository \url{http://github.com/gibbslab/minval}.
+\noindent The \pkg{minval} package requires an R version 2.10 or higher. Development releases of the package are available in the GitHub repository \url{http://github.com/gibbslab/minval}.
 
 \subsection{Inputs and syntaxis}
 The functions included in \CRANpkg{minval} package take as input a set of stoichiometric reactions where the metabolites should be separated by a plus symbol (\code{+}) between two blank spaces and may have just one stoichiometric coefficient before the name. The reactants should be separated from products by an arrow using the following symbol \code{=>} for irreversible reactions and \code{<=>} for reversible reactions.
-The data can be loaded from traditional human-readable spreadsheets through other CRAN-available packages such as \CRANpkg{gdata}, \CRANpkg{readxl} or \CRANpkg{xlsx}.
+The data can be loaded from traditional human-readable spreadsheets through other CRAN-available packages such as \CRANpkg{gdata}, \CRANpkg{readxl} or \CRANpkg{xlsx}. To load the included glycolysis model just type:
 <<echo=FALSE>>=
 library(minval)
 @
@@ -68,18 +68,22 @@ glycolysisModel <- read.csv(file = glycolysisFile,
 @
 
 \subsection{Syntax Validation}
-The first step for a metabolic reconstruction validation is the check of their stoichiometric reactions. The \code{validateSyntax} function validate the syntax (Equation \ref{eq:biochemicalReaction}) of all reactions in a metabolic reconstruction for several FBA implementations (i.e. \pkg{COBRA} and \pkg{RAVEN}) and returns a boolean value \code{'TRUE'} if the syntax is correct. Syntax validation is a critical step due valid stoichiometric reactions are required to write models in TSV or SBML formats.
-
+The first step for a metabolic reconstruction validation is to check the syntax of their stoichiometric reactions. The \code{validateSyntax} function validate the syntax (Equation \ref{eq:biochemicalReaction}) of all reactions in a metabolic reconstruction for several FBA implementations (i.e. \pkg{COBRA} and \pkg{RAVEN}) and returns a boolean value \code{'TRUE'} if the syntax is correct. Syntax validation is a critical step due valid stoichiometric reactions are required to write models in TSV or SBML formats.
 <<>>=
 validateSyntax(reactionList = glycolysisModel$REACTION)
 @
 \subsection{Metabolic models}
-Metabolic models include additional to the stoichiometric reactions also another information that allows model and interrogates them through FBA, the generally associated information is:\begin{center}
+Metabolic models include additional to the stoichiometric reactions also another information that allows model and interrogates them through FBA, the generally associated information is:
+<<>>=
+colnames(glycolysisModel)
+@
+\begin{center}
 \begin{tabular}{lp{9cm}p{2cm}}
 \hline
 Label&Description&Default Value\\
 \hline
 \code{ID}&A list of single character strings containing the reaction abbreviations, Entries in the field abbreviation are used as reaction ids, so they must be unique.& Mandatory\\
+\code{DESCRIPTION}&A reaction description&Optional (the column can be empty)\\
 \code{REACTION}&A set of stoichiometric reactions with the previously described characteristics.& Mandatory\\
 \code{GPR}& A set of genes joined by boolean operators as \code{AND} or \code{OR}, rules may be nested by parenthesis. GPR rules represent the relationship between genes to syntetize the required enzyme or enzymes to catalyze the stoichiometric reaction.& Optional (the column can be empty)\\
 \code{LOWER.BOUND}& A list of numeric values containing the lower bounds of the reaction rates. If not set, zero is used for an irreversible reaction and -1000 for a reversible reaction.& -1000 or 0\\
@@ -88,6 +92,7 @@ Label&Description&Default Value\\
 \hline
 \end{tabular}
 \end{center}
+\subsection{SBML files}
 The standard format to share and store biological processes such as metabolic models is the Systems Biology Markup Language (\textbf{SBML}) format. The \CRANpkg{minval} package includes the \code{writeSBMLmod} function which is able to write models in SBML format as follows:
 <<>>=
 writeSBMLmod(modelData = glycolysisModel,
@@ -99,7 +104,7 @@ Metabolic models in SBML format can be readed through the \code{readSBMLmod} fun
 glycoModel <- sybilSBML::readSBMLmod("glycolysis.xml")
 glycoModel
 @
-After load the metabolic model, it can be interrogated through FBA using the \code{optimizeProb} function of the \CRANpkg{sybil} R package. In this case, the reaction \code{'R00200'} was set as the objective function. The \code{'R00200'} reaction describes the production of pyruvate from phosphoenolpyruvate an alpha-D-Glucose derivate.
+After load the metabolic model, it can be interrogated through FBA using the \code{optimizeProb} function of the \CRANpkg{sybil} R package. In this case, the reaction \code{'R00200'} was set as the objective function. The \code{'R00200'} reaction describes the production of pyruvate from phosphoenolpyruvate, an alpha-D-Glucose derivate.
 
 <<>>=
 sybil::optimizeProb(glycoModel)
@@ -118,6 +123,7 @@ The \code{checkBalance} function included into the \CRANpkg{minval} package can 
 # Loading reference
 chemicalData <- read.csv2(file = system.file("extdata", "chemData.csv", 
                                              package = "minval"))
+head(chemicalData, n= 5)
 
 # Mass-Balance evaluation                          
 checkBalance(reactionList = glycolysisModel$REACTION,
@@ -125,7 +131,7 @@ checkBalance(reactionList = glycolysisModel$REACTION,
              ids = "NAME",
              mFormula = "FORMULA")
 @
-As is shown above, the third stoichiometric reaction is unbalanced. It can be corrected replacing manually the unbalanced reaction as follows:
+As is shown above, the third stoichiometric reaction is mass-unbalanced. It can be corrected replacing manually the unbalanced reaction as follows:
 <<>>=
 glycolysisModel$REACTION[3] <- "D-Glyceraldehyde 3-phosphate[c] + Orthophosphate[c] + 
 NAD+[c] <=> 3-Phospho-D-glyceroyl phosphate[c] + NADH[c] + H+[c]"
@@ -144,7 +150,29 @@ writeSBMLmod(modelData = glycolysisModel,
           outputFile = "glycolysisBalanced.xml")
 sybil::optimizeProb(sybilSBML::readSBMLmod("glycolysisBalanced.xml"))
 @
+As shown, the correctness mass-charge balance allows predicting in an accurate way the net yield of metabolism through FBA analysis.
 
+
+\subsection{Characterize model}
+A metabolic reconstruction generally includes three types of reactions \textit{compartmentalized}, \textit{transport} and \textit{exchange} reactions. The \textit{compartmentalized reactions} are those in where all involved metabolites (all reactants and products) were assigned to the same compartment. e.g. \code{h[m] + nadph[m] + o2[m] + 25hvitd2[m] =>\ h2o[m] + nadp[m] + 1a25dhvitd2[m]}. The \textit{transport reactions} are those in where the involved metabolites were assigned to two or more compartments. e.g. \code{2 hco3[e] + na1[e] <=>\ 2 hco3[c] + na1[c]}, and finally, the \textit{exchange reactions} are those used to import or release metabolites to the boundary. e.g. \code{acetone[e] <=>}. Characterize the stoichiometric reactions of a metabolic model is a required and time-consuming work. The \CRANpkg{minval} package includes the \code{characterizeReactions} function to characterize the stoichiometric reactions and metabolites by type and compartment. This function counts the number of reactions, computes the relative frequency of each reaction type (transport, exchange and compartmentalized), computes the relative frequency of reactions by compartment, counts the number of unique metabolites and computes the relative frequency of metabolites by compartment. The \code{characterizeReactions} function returns all these information as a labeled list. To show the potential use of the characterizeReactions function of the MINVAL package the Human Metabolic Reconstruction (RECON 2.04) was included in a human-readable format. To load and characterize it just type:
+<<>>=
+# Loading the Human Metabolic Reconstruction RECON 2.04
+RECON <- read.csv(system.file("extdata", "rRECON2.csv", 
+                              package = "minval"))
+
+
+# Characterizing the stoichiometric reactions
+charRECON <- characterizeReactions(reactionList = RECON$REACTION)
+charRECON
+@
+Computed values can be easy plotted as follows:
+<<>>=
+pie(x = charRECON$rType, 
+    main = "Reactions by Type"
+    )
+@
+\subsection{Stoichiometric matrix}
+A metabolic model is often represented in a more compact form called the stoichiometry matrix (\textit{S}). If a metabolic model has \textit{n} reactions and \textit{m} participating metabolites, then the stoichiometry matrix will have correspondingly \textit{m} rows and \textit{n} columns. Values in the stoichiometric matrix represent the metabolites coefficients in each reaction. To generate the stoichiometric matrix of a metabolic reconstruction just type:
 <<>>=
 stoichiometricMatrix(reactionList = glycolysisModel$REACTION)
 @

@@ -44,7 +44,7 @@ Two of the most popular implementations of FBA analysis are \pkg{COBRA} \citep{B
 
 With the aim of minimizing the manual introduction of thousands of chemical formulas in a genome-scale reconstruction as well as to avoid the sometimes limiting use of licensed software, we have developed the \CRANpkg{minval} package. The \CRANpkg{minval} package includes twelve functions designed to characterize, check and depurate metabolic reconstructions before its interrogation through Flux Balance Analysis (FBA).
 
-To show the potential use of the functions included into the \CRANpkg{minval} package, a human-readable model composed by a set of 19 stoichiometric reactions that represent an model of the glycolysis process was included. Glycolysis is the metabolic pathway that converts a molecule of glucose (C$_{6}$H$_{12}$O$_{6}$), into two molecules of pyruvate (CH$_{3}$COCOO$^{-}$ + H$^{+}$) throught a  sequence of ten enzyme-catalyzed reactions. Glycolysis occurs in most organisms in the cytosol of the cell and can be summarized as follows: \code{1 alpha-D-Glucose[c] + 2 NAD+[c] + 2 ADP[c] + 2 Orthophosphate[c] =>\ 2 Pyruvate[c] + 2 NADH[c] + 2 H+[c] + 2 ATP[c] + 2 H2O[c]}
+To show the potential use of the functions included into the \CRANpkg{minval} package, a human-readable model composed by a set of 19 stoichiometric reactions that represent the glycolysis process was included. Glycolysis is the metabolic pathway that converts a molecule of glucose (C$_{6}$H$_{12}$O$_{6}$), into two molecules of pyruvate (CH$_{3}$COCOO$^{-}$ + H$^{+}$) through a  sequence of ten enzyme-catalyzed reactions. Glycolysis occurs in most organisms in the cytosol of the cell and can be summarized as follows: \code{1 alpha-D-Glucose[c] + 2 NAD+[c] + 2 ADP[c] + 2 Orthophosphate[c] =>\ 2 Pyruvate[c] + 2 NADH[c] + 2 H+[c] + 2 ATP[c] + 2 H2O[c]}
 
 \section{Installation and functions}
 The \pkg{minval} package includes twelve functions and is available for download and installation from CRAN, the
@@ -55,11 +55,11 @@ Comprehensive R Archive Network. To install and load it, just type:
 > library(minval)
 \end{Sinput}
 \end{Schunk}
-\noindent The \pkg{minval} package requires an R version 2.10 or higher. Development releases of the package are available on the GitHub repository \url{http://github.com/gibbslab/minval}.
+\noindent The \pkg{minval} package requires an R version 2.10 or higher. Development releases of the package are available in the GitHub repository \url{http://github.com/gibbslab/minval}.
 
 \subsection{Inputs and syntaxis}
 The functions included in \CRANpkg{minval} package take as input a set of stoichiometric reactions where the metabolites should be separated by a plus symbol (\code{+}) between two blank spaces and may have just one stoichiometric coefficient before the name. The reactants should be separated from products by an arrow using the following symbol \code{=>} for irreversible reactions and \code{<=>} for reversible reactions.
-The data can be loaded from traditional human-readable spreadsheets through other CRAN-available packages such as \CRANpkg{gdata}, \CRANpkg{readxl} or \CRANpkg{xlsx}.
+The data can be loaded from traditional human-readable spreadsheets through other CRAN-available packages such as \CRANpkg{gdata}, \CRANpkg{readxl} or \CRANpkg{xlsx}. To load the included glycolysis model just type:
 \begin{Schunk}
 \begin{Sinput}
 > glycolysisFile <- system.file("extdata", "glycolysisModel.csv", package = "minval")
@@ -70,8 +70,7 @@ The data can be loaded from traditional human-readable spreadsheets through othe
 \end{Schunk}
 
 \subsection{Syntax Validation}
-The first step for a metabolic reconstruction validation is the check of their stoichiometric reactions. The \code{validateSyntax} function validate the syntax (Equation \ref{eq:biochemicalReaction}) of all reactions in a metabolic reconstruction for several FBA implementations (i.e. \pkg{COBRA} and \pkg{RAVEN}) and returns a boolean value \code{'TRUE'} if the syntax is correct. Syntax validation is a critical step due valid stoichiometric reactions are required to write models in TSV or SBML formats.
-
+The first step for a metabolic reconstruction validation is to check the syntax of their stoichiometric reactions. The \code{validateSyntax} function validate the syntax (Equation \ref{eq:biochemicalReaction}) of all reactions in a metabolic reconstruction for several FBA implementations (i.e. \pkg{COBRA} and \pkg{RAVEN}) and returns a boolean value \code{'TRUE'} if the syntax is correct. Syntax validation is a critical step due valid stoichiometric reactions are required to write models in TSV or SBML formats.
 \begin{Schunk}
 \begin{Sinput}
 > validateSyntax(reactionList = glycolysisModel$REACTION)
@@ -82,12 +81,23 @@ The first step for a metabolic reconstruction validation is the check of their s
 \end{Soutput}
 \end{Schunk}
 \subsection{Metabolic models}
-Metabolic models include additional to the stoichiometric reactions also another information that allows model and interrogates them through FBA, the generally associated information is:\begin{center}
+Metabolic models include additional to the stoichiometric reactions also another information that allows model and interrogates them through FBA, the generally associated information is:
+\begin{Schunk}
+\begin{Sinput}
+> colnames(glycolysisModel)
+\end{Sinput}
+\begin{Soutput}
+[1] "ID"          "DESCRIPTION" "REACTION"    "GPR"         "LOWER.BOUND"
+[6] "UPPER.BOUND" "OBJECTIVE"  
+\end{Soutput}
+\end{Schunk}
+\begin{center}
 \begin{tabular}{lp{9cm}p{2cm}}
 \hline
 Label&Description&Default Value\\
 \hline
 \code{ID}&A list of single character strings containing the reaction abbreviations, Entries in the field abbreviation are used as reaction ids, so they must be unique.& Mandatory\\
+\code{DESCRIPTION}&A reaction description&Optional (the column can be empty)\\
 \code{REACTION}&A set of stoichiometric reactions with the previously described characteristics.& Mandatory\\
 \code{GPR}& A set of genes joined by boolean operators as \code{AND} or \code{OR}, rules may be nested by parenthesis. GPR rules represent the relationship between genes to syntetize the required enzyme or enzymes to catalyze the stoichiometric reaction.& Optional (the column can be empty)\\
 \code{LOWER.BOUND}& A list of numeric values containing the lower bounds of the reaction rates. If not set, zero is used for an irreversible reaction and -1000 for a reversible reaction.& -1000 or 0\\
@@ -96,6 +106,7 @@ Label&Description&Default Value\\
 \hline
 \end{tabular}
 \end{center}
+\subsection{SBML files}
 The standard format to share and store biological processes such as metabolic models is the Systems Biology Markup Language (\textbf{SBML}) format. The \CRANpkg{minval} package includes the \code{writeSBMLmod} function which is able to write models in SBML format as follows:
 \begin{Schunk}
 \begin{Sinput}
@@ -121,7 +132,7 @@ number of unique genes: 22
 objective function:     +1 R00200 
 \end{Soutput}
 \end{Schunk}
-After load the metabolic model, it can be interrogated through FBA using the \code{optimizeProb} function of the \CRANpkg{sybil} R package. In this case, the reaction \code{'R00200'} was set as the objective function. The \code{'R00200'} reaction describes the production of pyruvate from phosphoenolpyruvate an alpha-D-Glucose derivate.
+After load the metabolic model, it can be interrogated through FBA using the \code{optimizeProb} function of the \CRANpkg{sybil} R package. In this case, the reaction \code{'R00200'} was set as the objective function. The \code{'R00200'} reaction describes the production of pyruvate from phosphoenolpyruvate, an alpha-D-Glucose derivate.
 
 \begin{Schunk}
 \begin{Sinput}
@@ -156,6 +167,17 @@ The \code{checkBalance} function included into the \CRANpkg{minval} package can 
 > # Loading reference
 > chemicalData <- read.csv2(file = system.file("extdata", "chemData.csv", 
 +                                              package = "minval"))
+> head(chemicalData, n= 5)
+\end{Sinput}
+\begin{Soutput}
+                             NAME       FORMULA     MASS CHARGE
+1                             H2O           H2O  18.0106      0
+2                              H+             H   1.0078      1
+3                             ATP C10H16N5O13P3 506.9957      0
+4                            NAD+ C21H28N7O14P2 664.1169      1
+5 3-Phospho-D-glyceroyl phosphate     C3H8O10P2 265.9593      0
+\end{Soutput}
+\begin{Sinput}
 > # Mass-Balance evaluation                          
 > checkBalance(reactionList = glycolysisModel$REACTION,
 +              referenceData = chemicalData,
@@ -167,7 +189,7 @@ The \code{checkBalance} function included into the \CRANpkg{minval} package can 
 [13]  TRUE  TRUE  TRUE  TRUE  TRUE  TRUE  TRUE
 \end{Soutput}
 \end{Schunk}
-As is shown above, the third stoichiometric reaction is unbalanced. It can be corrected replacing manually the unbalanced reaction as follows:
+As is shown above, the third stoichiometric reaction is mass-unbalanced. It can be corrected replacing manually the unbalanced reaction as follows:
 \begin{Schunk}
 \begin{Sinput}
 > glycolysisModel$REACTION[3] <- "D-Glyceraldehyde 3-phosphate[c] + Orthophosphate[c] + 
@@ -207,243 +229,15 @@ value of objective function (fba):        2.000000
 value of objective function (model):      2.000000
 \end{Soutput}
 \end{Schunk}
+As shown, the correctness mass-charge balance allows predicting in an accurate way the net yield of metabolism through FBA analysis.
 
+
+\subsection{Characterize model}
+A metabolic reconstruction generally includes three types of reactions \textit{compartmentalized}, \textit{transport} and \textit{exchange} reactions. The \textit{compartmentalized reactions} are those in where all involved metabolites (all reactants and products) were assigned to the same compartment. e.g. \code{h[m] + nadph[m] + o2[m] + 25hvitd2[m] =>\ h2o[m] + nadp[m] + 1a25dhvitd2[m]}. The \textit{transport reactions} are those in where the involved metabolites were assigned to two or more compartments. e.g. \code{2 hco3[e] + na1[e] <=>\ 2 hco3[c] + na1[c]}, and finally, the \textit{exchange reactions} are those used to import or release metabolites to the boundary. e.g. \code{acetone[e] <=>}. Characterize the stoichiometric reactions of a metabolic model is a required and time-consuming work. The \CRANpkg{minval} package includes the \code{characterizeReactions} function to characterize the stoichiometric reactions and metabolites by type and compartment. This function counts the number of reactions, computes the relative frequency of each reaction type (transport, exchange and compartmentalized), computes the relative frequency of reactions by compartment, counts the number of unique metabolites and computes the relative frequency of metabolites by compartment. The \code{characterizeReactions} function returns all these information as a labeled list. To show the potential use of the characterizeReactions function of the MINVAL package the Human Metabolic Reconstruction (RECON 2.04) was included in a human-readable format. To load and characterize it just type:
 \begin{Schunk}
 \begin{Sinput}
-> stoichiometricMatrix(reactionList = glycolysisModel$REACTION)
-\end{Sinput}
-\begin{Soutput}
-                                     reactions
-metabolites                           R01 R02 R03 R04 R05 R06 R07 R08 R09 R10
-  2-Phospho-D-glycerate[c]             -1   0   0   0   0  -1   0   0   0   0
-  Phosphoenolpyruvate[c]                1   0   0   0   0   0   0   0   0  -1
-  H2O[c]                                1   0   0   0   0   0   0   0   0   0
-  D-Glyceraldehyde 3-phosphate[c]       0  -1  -1   1   0   0   0   0   0   0
-  Glycerone phosphate[c]                0   1   0   1   0   0   0   0   0   0
-  Orthophosphate[c]                     0   0  -1   0   0   0   0   0   0   0
-  NAD+[c]                               0   0  -1   0   0   0   0   0   0   0
-  3-Phospho-D-glyceroyl phosphate[c]    0   0   1   0   1   0   0   0   0   0
-  NADH[c]                               0   0   1   0   0   0   0   0   0   0
-  H+[c]                                 0   0   1   0   0   0   0   0   0   0
-  beta-D-Fructose 1,6-bisphosphate[c]   0   0   0  -1   0   0   0   0   1   0
-  ATP[c]                                0   0   0   0  -1   0  -1   0  -1   1
-  3-Phospho-D-glycerate[c]              0   0   0   0  -1   1   0   0   0   0
-  ADP[c]                                0   0   0   0   1   0   1   0   1  -1
-  alpha-D-Glucose[c]                    0   0   0   0   0   0  -1   0   0   0
-  alpha-D-Glucose 6-phosphate[c]        0   0   0   0   0   0   1  -1   0   0
-  beta-D-Fructose 6-phosphate[c]        0   0   0   0   0   0   0   1  -1   0
-  Pyruvate[c]                           0   0   0   0   0   0   0   0   0   1
-                                     reactions
-metabolites                           R11 R12 R13 R14 R15 R16 R17 R18 R19
-  2-Phospho-D-glycerate[c]              0   0   0   0   0   0   0   0   0
-  Phosphoenolpyruvate[c]                0   0   0   0   0   0   0   0   0
-  H2O[c]                               -1   0   0   0   0   0   0   0   0
-  D-Glyceraldehyde 3-phosphate[c]       0   0   0   0   0   0   0   0   0
-  Glycerone phosphate[c]                0   0   0   0   0   0   0   0   0
-  Orthophosphate[c]                     0   0   0  -1   0   0   0   0   0
-  NAD+[c]                               0  -1   0   0   0   0   0   0   0
-  3-Phospho-D-glyceroyl phosphate[c]    0   0   0   0   0   0   0   0   0
-  NADH[c]                               0   0  -1   0   0   0   0   0   0
-  H+[c]                                 0   0   0   0  -1   0   0   0   0
-  beta-D-Fructose 1,6-bisphosphate[c]   0   0   0   0   0   0   0   0   0
-  ATP[c]                                0   0   0   0   0  -1   0   0   0
-  3-Phospho-D-glycerate[c]              0   0   0   0   0   0   0   0   0
-  ADP[c]                                0   0   0   0   0   0   0   0  -1
-  alpha-D-Glucose[c]                    0   0   0   0   0   0  -1   0   0
-  alpha-D-Glucose 6-phosphate[c]        0   0   0   0   0   0   0   0   0
-  beta-D-Fructose 6-phosphate[c]        0   0   0   0   0   0   0   0   0
-  Pyruvate[c]                           0   0   0   0   0   0   0  -1   0
-\end{Soutput}
-\end{Schunk}
-\subsection{Reactants and Products}
-As described before, stoichiometric reactions represent the transformation of reactants into products in a chemical reaction. The \code{reactants} and \code{products} functions extract and return all reactants or products respectively in a stoichiometric reaction as a vector. If reaction is irreversible (\code{'=>'}) then reactants and products are separated and returned afterward as follows:
-\begin{Schunk}
-\begin{Sinput}
-> reactants(reactionList = "ADP[c] + Phosphoenolpyruvate[c] => ATP[c] + Pyruvate[c]")
-\end{Sinput}
-\begin{Soutput}
-[1] "ADP[c]"                 "Phosphoenolpyruvate[c]"
-\end{Soutput}
-\begin{Sinput}
-> products(reactionList = "ADP[c] + Phosphoenolpyruvate[c] => ATP[c] + Pyruvate[c]")
-\end{Sinput}
-\begin{Soutput}
-[1] "ATP[c]"      "Pyruvate[c]"
-\end{Soutput}
-\end{Schunk}
-In reversible cases (\code{'<=>'})  all reactants at some point can act as products and \textit{vice versa}, for that reason both functions return all reaction metabolites:
-\begin{Schunk}
-\begin{Sinput}
-> reactants(reactionList = "H2O[c] + Urea-1-Carboxylate[c] <=> 2 CO2[c] + 2 NH3[c]")
-\end{Sinput}
-\begin{Soutput}
-[1] "H2O[c]"                "Urea-1-Carboxylate[c]" "CO2[c]"               
-[4] "NH3[c]"               
-\end{Soutput}
-\begin{Sinput}
-> products(reactionList = "H2O[c] + Urea-1-Carboxylate[c] <=> 2 CO2[c] + 2 NH3[c]")
-\end{Sinput}
-\begin{Soutput}
-[1] "H2O[c]"                "Urea-1-Carboxylate[c]" "CO2[c]"               
-[4] "NH3[c]"               
-\end{Soutput}
-\end{Schunk}
-
-\subsection{Metabolites}
-The \code{metabolites} function automatically identifies and lists all metabolites (with or without compartments) for a specific or a set of stoichiometric reactions.  This list is usually required for programs that perform FBA analysis as an independent input spreadsheet. In this example we show how to extract all metabolites (reactants and products) with and without compartment included in the RECON 2.04 metabolic reconstruction.
-\begin{Schunk}
-\begin{Sinput}
-> metabolites(reactionList = glycolysisModel$REACTION)
-\end{Sinput}
-\begin{Soutput}
- [1] "2-Phospho-D-glycerate[c]"            "Phosphoenolpyruvate[c]"             
- [3] "H2O[c]"                              "D-Glyceraldehyde 3-phosphate[c]"    
- [5] "Glycerone phosphate[c]"              "Orthophosphate[c]"                  
- [7] "NAD+[c]"                             "3-Phospho-D-glyceroyl phosphate[c]" 
- [9] "NADH[c]"                             "H+[c]"                              
-[11] "beta-D-Fructose 1,6-bisphosphate[c]" "ATP[c]"                             
-[13] "3-Phospho-D-glycerate[c]"            "ADP[c]"                             
-[15] "alpha-D-Glucose[c]"                  "alpha-D-Glucose 6-phosphate[c]"     
-[17] "beta-D-Fructose 6-phosphate[c]"      "Pyruvate[c]"                        
-\end{Soutput}
-\end{Schunk}
-\subsection{Orphan Metabolites}
-Those compounds that are not produced or consumed in any other reaction, generally called orphan metabolites, are one of the main causes of mass unbalance in metabolic reconstructions. The \code{orphanReactants} function, identifies compounds that are not produced internally by any other reaction and should be added to the reconstruction, for instance, as an exchange reaction following the protocol proposed by \cite{Thiele2010}. In following example we show how to extract all orphan compounds included in the Human metabolic reconstruction.
-\begin{Schunk}
-\begin{Sinput}
-> head(orphanReactants(reactionList = glycolysisModel$REACTION), n = 100)
-\end{Sinput}
-\begin{Soutput}
-[1] NA
-\end{Soutput}
-\end{Schunk}
-following the protocol proposed by \cite{Thiele2010}. In this example we show the option added to \code{orphan.*} functions, that permits to report the orphan metabolites as a list grouped by compartment:
-\begin{Schunk}
-\begin{Sinput}
-> head(orphanProducts(reactionList = glycolysisModel$REACTION, byCompartment = TRUE), n = 100)
-\end{Sinput}
-\begin{Soutput}
-[[1]]
-character(0)
-\end{Soutput}
-\end{Schunk}
-\subsection{Compartments}
-As well as in cells, in which not all reactions occur in all compartments,  stoichiometric reactions in a metabolic reconstruction can be labeled to be restricted for a single compartment during FBA, by the assignment of  a compartment label after each metabolite name. Some FBA implementations require the reporting of all compartments included in the metabolic reconstruction as an independent section of the human-readable input file. In this example we show how to extract all compartments for all reactions included in the glutamate/glutamine cycle.
-\begin{Schunk}
-\begin{Sinput}
-> compartments(glugln)
-\end{Sinput}
-\begin{Soutput}
-[1] "c_n" "r_n" "m_n" "c_a" "r_a" "m_a"
-\end{Soutput}
-\end{Schunk}
-\subsection{Association with ChEBI}
-The Chemical Entities of Biological Interest (\pkg{ChEBI}) database  is a freely available dictionary of molecular entities focused on 'small' chemical compounds involved in biochemical reactions \citep{Degtyarenko2007}. Amongst other characteristics, the release 136 of the ChEBI database contains a set of standardized metabolite names, synonyms and molecular formula for at least 52521 chemical compounds. The use of standardized metabolite names facilitate the sharing process and inter-convertion to another metabolite names  or identifiers \citep{Bernard2014, Ravikrishnan2015}. The \pkg{minval} package contains five functions to validate and extract values from a local copy of the ChEBI database release 136. The \code{is.chebi} function takes a compound name as input, compares it against all the compounds names in ChEBI and returns a logical value TRUE if a match is found. In this next four examples we show the potential use of the functions using as input the acetyl-CoA compound.
-\begin{Schunk}
-\begin{Sinput}
-> is.chebi("acetyl-CoA")
-\end{Sinput}
-\begin{Soutput}
-[1] TRUE
-\end{Soutput}
-The \code{chebi.id} function takes a compound name as input, compares it against all the compounds names in ChEBI and returns the compound identifier if a match is found.
-\begin{Sinput}
-> chebi.id("acetyl-CoA")
-\end{Sinput}
-\begin{Soutput}
-[1] "15351"
-\end{Soutput}
-The \code{chebi.formula} function takes a compound name as input, compares it against all the compounds names in ChEBI and returns the molecular formula if a match is found.
-\begin{Sinput}
-> chebi.formula("acetyl-CoA")
-\end{Sinput}
-\begin{Soutput}
-[1] "C23H38N7O17P3S"
-\end{Soutput}
-The \code{chebi.candidates} function takes a compound name as input, compares it against all the compounds synonyms in ChEBI and returns possible compound names if a match is found.
-\begin{Sinput}
-> candidates<-chebi.candidates("acetyl-CoA")
-> head(candidates)
-\end{Sinput}
-\begin{Soutput}
-[1] "acetoacetyl-CoA"                 "acetyl-CoA"
-[3] "(1-hydroxycyclohexyl)acetyl-CoA" "cinnamoyl-CoA"
-[5] "2-methylacetoacetyl-CoA"         "phenylacetyl-CoA"
-\end{Soutput}
-The \code{to.ChEBI} function translates the compounds names of a stoichiometric reaction into their corresponding identifier or molecular formula in the ChEBI database. In this example we show how to use the \code{to.ChEBI} function for the Ubiquinol and FAD production reaction in astrocytes mitochondrias.
-\begin{Sinput}
-> toChEBI("FADH2[m_a] + ubiquinone-0[m_a] => FAD[m_a] + Ubiquinol[m_a]")
-\end{Sinput}
-\begin{Soutput}
-[1] "1 17877 + 1 27906 => 1 16238 + 1 17976"
-\end{Soutput}
-\begin{Sinput}
-> toChEBI("FADH2[m_a] + ubiquinone-0[m_a] => FAD[m_a] + Ubiquinol[m_a]",formula = TRUE)
-\end{Sinput}
-\begin{Soutput}
-[1] "1 C27H35N9O15P2 + 1 C9H10O4 => 1 C27H33N9O15P2 + 1 C9H12O4(C5H8)n"
-\end{Soutput}
-\end{Schunk}
-\subsection{Mass Balance Validation}
-Thermodynamic unbalance of genome-scale metabolic reconstructions can also be promoted by stoichiometric mistakes. In a well balanced stoichiometric reaction according to the Lomonósov-Lavoisier law, the mass comprising the reactants should be the same mass present in the products. The \code{unbalanced} function converts the metabolites identifiers to molecular formulas, multiplies the atom numbers by their respective stoichiometric coefficient, and establishes if the atomic composition of reactants and products are the same, it returns a logical value TRUE if mass is unbalanced. In this example we show the mass balance evaluation for the first twenty reactions of the glutamate/glutamine cycle.
-\begin{Schunk}
-\begin{Sinput}
-> unbalanced(glugln[1:20])
-\end{Sinput}
-\begin{Soutput}
-[1] FALSE  TRUE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE
-[13] FALSE  TRUE FALSE FALSE  TRUE  TRUE  TRUE  TRUE
-\end{Soutput}
-The \code{unbalanced} function also include an option to show the molecular formula of mass unbalanced formulas through the option \code{show.formulas}.
-\begin{Sinput}
-> unbalanced(glugln[1:20], show.formulas = TRUE)
-\end{Sinput}
-\begin{Soutput}
-[,1]
-[1,] "alpha-D-Glucose 6-phosphate[r_n] + water[r_n] => alpha-D-Glucose[r_n] + phos ..."
-[2,] "beta-D-fructofuranose 1,6-bisphosphate[c_n] + water[c_n] => beta-D-fructofur ..."
-[3,] "D-Glyceraldehyde 3-phosphate[c_n] + phosphate(3-)[c_n] + NAD(+)[c_n] <=> 3-p ..."
-[4,] "ATP[c_n] + 3-phosphoglyceric acid[c_n] <=> ADP[c_n] + 3-phosphonato-D-glycer ..."
-[5,] "3-phosphonato-D-glyceroyl phosphate(4-)[c_n] => 2,3-bisphospho-D-glyceric ac ..."
-[6,] "2,3-bisphospho-D-glyceric acid[c_n] + water[c_n] => 3-phosphoglyceric acid[c ..."
-[,2]
-[1,] "1 C6H13O9P + 1 H2O => 1 C6H12O6 + 1 O4P"
-[2,] "1 C6H14O12P2 + 1 H2O => 1 C6H13O9P + 1 O4P"
-[3,] "1 C3H7O6P + 1 O4P + 1 C21H28N7O14P2 <=> 3 C3H4O10P2 + 1 C21H29N7O14P2 + 1 H"
-[4,] "1 C10H16N5O13P3 + 3 C3H7O7P <=> 1 C10H15N5O10P2 + 3 C3H4O10P2"
-[5,] "3 C3H4O10P2 => 2 C3H8O10P2"
-[6,] "2 C3H8O10P2 + 1 H2O => 3 C3H7O7P + 1 O4P"
-\end{Soutput}
-\end{Schunk}
-
-\section{Summary}
-We introduced the \pkg{minval} package to evaluate mass balancing correctness of metabolic reconstructions and to extract all reactants, products, orphan metabolites, metabolite names and compartments for a set of stoichiometric reactions, which together represent the minimal validation that should be performed in a genome-scale metabolic reconstruction. We also show in a step by step fashion, how this minimal evaluation process of mass balance can be performed using the 128 non-exchange reactions included in the glutamate/glutamine cycle included in the ``\code{glugln}'' dataset. We also showed some examples of metabolite names - ChEBI database association procedures.
-
-\section{Acknowledgements}
-DO and JG  were supported by the Pontificia Universidad Javeriana (Grant ID 5619, 6371, 6375)
-\bibliography{Osorio-Gonzalez-Pinzon.bib}
-
-\address{Daniel Osorio\\
-Grupo de Investigación en Bioinformática y Biología de Sistemas\\
-Instituto de Genética, Universidad Nacional de Colombia\\
-Bogotá\\
-Colombia\\}
-\email{dcosorioh@unal.edu.co}
-
-\address{Janneth Gonzalez\\
-Grupo de Investigación en Bioquímica Experimental y Computacional\\
-Facultad de Ciencias, Pontificia Universidad Javeriana\\
-Bogotá\\
-Colombia\\}
-\email{janneth.gonzalez@javeriana.edu.co}
-
-\address{Andres Pinzon-Velasco\\
-Grupo de Investigación en Bioinformática y Biología de Sistemas\\
-Instituto de Genética, Universidad Nacional de Colombia\\
-Bogotá\\
-Colombia\\}
-\email{ampinzonv@unal.edu.co}
-
-\end{article}
-
-\end{document}
+> # Loading the Human Metabolic Reconstruction RECON 2.04
+> RECON <- read.csv(system.file("extdata", "rRECON2.csv", 
++                               package = "minval"))
+> # Characterizing the stoichiometric reactions
+> charRECON <- characterizeReactions(reactionList = RECON$REACTION)
