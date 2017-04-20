@@ -157,7 +157,7 @@ As shown, the correctness mass-charge balance allows predicting in an accurate w
 A metabolic reconstruction generally includes three types of reactions \textit{compartmentalized}, \textit{transport} and \textit{exchange} reactions. The \textit{compartmentalized reactions} are those in where all involved metabolites (all reactants and products) were assigned to the same compartment. e.g. \code{h[m] + nadph[m] + o2[m] + 25hvitd2[m] =>\ h2o[m] + nadp[m] + 1a25dhvitd2[m]}. The \textit{transport reactions} are those in where the involved metabolites were assigned to two or more compartments. e.g. \code{2 hco3[e] + na1[e] <=>\ 2 hco3[c] + na1[c]}, and finally, the \textit{exchange reactions} are those used to import or release metabolites to the boundary. e.g. \code{acetone[e] <=>}. Characterize the stoichiometric reactions of a metabolic model is a required and time-consuming work. The \CRANpkg{minval} package includes the \code{characterizeReactions} function to characterize the stoichiometric reactions and metabolites by type and compartment. This function counts the number of reactions, computes the relative frequency of each reaction type (transport, exchange and compartmentalized), computes the relative frequency of reactions by compartment, counts the number of unique metabolites and computes the relative frequency of metabolites by compartment. The \code{characterizeReactions} function returns all these information as a labeled list. To show the potential use of the characterizeReactions function of the MINVAL package the Human Metabolic Reconstruction (RECON 2.04) was included in a human-readable format. To load and characterize it just type:
 <<>>=
 # Loading the Human Metabolic Reconstruction RECON 2.04
-RECON <- read.csv(system.file("extdata", "rRECON2.csv", 
+RECON <- read.csv(system.file("extdata", "rRECON2.csv",
                               package = "minval"))
 
 
@@ -166,11 +166,33 @@ charRECON <- characterizeReactions(reactionList = RECON$REACTION)
 charRECON
 @
 Computed values can be easy plotted as follows:
-<<>>=
-pie(x = charRECON$rType, 
-    main = "Reactions by Type"
-    )
+<<echo=FALSE>>=
+compartmentNames <- c(c = "Cytosol", 
+                      e = "Extracellular", 
+                      g = "Golgi apparatus", 
+                      l = "Lysosome", 
+                      m = "Mitochondria", 
+                      n = "Nucleus", 
+                      r = "Endoplasmic reticulum",
+                      x = "Peroxisome"
+                      )
 @
+<<eval=FALSE>>=
+par(mfrow=c(1,2))
+
+# Plotting reactions by Type
+pie(x = charRECON$rType, 
+    main = "Reactions by Type")
+
+# Plotting reactions by Compartment
+pie(x = charRECON$cReaction, 
+    main = "Reactions by Compartment", 
+    labels = compartmentNames)
+@
+\begin{figure}[!h]
+\includegraphics[width=\textwidth]{Fig1-Osorio-Gonzales-Pinzon}
+\caption{A}
+\end{figure}
 \subsection{Stoichiometric matrix}
 A metabolic model is often represented in a more compact form called the stoichiometry matrix (\textit{S}). If a metabolic model has \textit{n} reactions and \textit{m} participating metabolites, then the stoichiometry matrix will have correspondingly \textit{m} rows and \textit{n} columns. Values in the stoichiometric matrix represent the metabolites coefficients in each reaction. To generate the stoichiometric matrix of a metabolic reconstruction just type:
 <<>>=
