@@ -20,7 +20,7 @@
 \begin{article}
 % !TeX root = RJwrapper.tex
 \title{minval: An R package for MINimal VALidation of stoichiometric reactions}
-\author{by Daniel Osorio, Janneth Gonzalez and Andres Pinzon-Velasco}
+\author{by Daniel Osorio, Janneth Gonzalez and Andres Pinzon}
 
 \maketitle
 
@@ -33,7 +33,7 @@ A chemical reaction is a process where a set of chemical compounds called \emph{
 
 \begin{equation}
 \label{eq:biochemicalReaction}
-\overbrace{\underbrace{1}_{coefficient}\ \underbrace{cis-aconitic\ acid}_{metabolite\ name}\underbrace{[c_a]}_{compartment}\ +\ 1\ water[c_a]}^{reactants} \underbrace{\Rightarrow}_{directionallity} \overbrace{1\ isocitric\ acid[c_a]}^{products}
+\overbrace{\underbrace{1}_{coefficient}\ \underbrace{cis-aconitic\ acid}_{metabolite\ name}\underbrace{[c]}_{compartment}\ +\ 1\ water[c]}^{reactants} \underbrace{\Rightarrow}_{directionallity} \overbrace{1\ isocitric\ acid[c]}^{products}
 \end{equation}
 
 Reconstruction of genome-scale metabolic models starts with a compilation of all known stoichiometric reactions for a given organism, according to the presence of enzyme-coding genes in its genome. The stoichiometric reactions catalyzed by these enzymes are usually downloaded from specialized databases such as KEGG \citep{Kanehisa2000}, BioCyc \citep{Caspi2014}, Reactome \citep{Croft2014}, BRENDA \citep{Chang2015} or SMPDB \citep{Jewison2014}. However, the downloaded stoichiometric reactions are not always mass-charge balanced and don't represent complete pathways as to construct a high-quality metabolic reconstruction \citep{Thiele2010, Gevorgyan2008}. Therefore the identification and curation of these type of reactions is a time-consuming process which  the researcher have to complete manually using available literature or experimental data \citep{Lakshmanan2014}.
@@ -270,6 +270,7 @@ $cMetabolites
 Computed values can be easy plotted as follows:
 \begin{Schunk}
 \begin{Sinput}
+> # Combining two plots into one overall graph
 > par(mfrow=c(1,2))
 > # Plotting reactions by Type
 > pie(x = charRECON$rType, 
@@ -400,7 +401,7 @@ The \code{metabolites} function automatically identifies and lists all metabolit
 \end{Soutput}
 \end{Schunk}
 \subsection{Orphan Metabolites}
-Those compounds that are not produced or consumed in any other reaction are generally called orphan metabolites, they represent one of the main causes of mass unbalance in metabolic reconstructions generating dead-ends without flux. The \code{orphanMetabolites} function extracts all orphan compounds included into a metabolic reconstruction.
+Those compounds that are not produced or consumed in any other reaction are generally called orphan metabolites, they represent one of the main causes of mass unbalances in metabolic reconstructions generating dead-ends without flux. The \code{orphanMetabolites} function extracts all orphan compounds included into a metabolic reconstruction.
 \begin{Schunk}
 \begin{Sinput}
 > orphanMetabolites(reactionList = glycolysisModel$REACTION[noExchange])
@@ -421,7 +422,7 @@ Due not all orphans are not consumed and not produced, the \code{orphanReactants
 [4] "NAD+[c]"            "NADH[c]"            "Orthophosphate[c]" 
 \end{Soutput}
 \end{Schunk}
-Otherwise, the \code{orphanProducts} function, identifies compounds that are not consumed internally by any other reaction and should be added to the reconstruction, for instance, as an output exchange (sink) reaction.
+By another side, the \code{orphanProducts} function, identifies compounds that are not consumed internally by any other reaction and should be added to the reconstruction, for instance, as an output exchange (sink) reaction.
 \begin{Schunk}
 \begin{Sinput}
 > orphanProducts(reactionList = glycolysisModel$REACTION[noExchange])
@@ -432,7 +433,7 @@ Otherwise, the \code{orphanProducts} function, identifies compounds that are not
 \end{Soutput}
 \end{Schunk}
 \subsection{Compartments}
-As well as in cells, in which not all reactions occur in all compartments,  stoichiometric reactions in a metabolic reconstruction can be labeled to be restricted for a single compartment during FBA, by the assignment of  a compartment label after each metabolite name. Some FBA implementations require the reporting of all compartments included in the metabolic reconstruction as an independent section of the human-readable input file. In this example we show how to extract all compartments for all reactions included in the glutamate/glutamine cycle.
+As well as in eucariotic cells, in which not all reactions occur in all compartments,  stoichiometric reactions in a metabolic reconstruction can be labeled to be restricted for a single compartment during FBA, by the assignment of  a compartment label after each metabolite name. Some FBA implementations require the reporting of all compartments included in the metabolic reconstruction as an independent section of the human-readable input file. In this example we show how to extract all compartments for all reactions included in the RECON 2.04 Human Metabolic Reconstruction \citep{RECON2}.
 \begin{Schunk}
 \begin{Sinput}
 > compartments(reactionList = RECON$REACTION)
@@ -442,11 +443,35 @@ As well as in cells, in which not all reactions occur in all compartments,  stoi
 \end{Soutput}
 \end{Schunk}
 
+\subsection{TSV files}
+Additionally to the SBML format, the TSV format is the default input of metabolic models for the \CRANpkg{sybil} R package. The TSV format is composed by three text files, following a character-separated (tab by default) value format where each line contains one entry (stoichiometric reaction and associated info). The function \code{writeTSVmod} can writes a metabolic model in a TSV format as follows:
+\begin{Schunk}
+\begin{Sinput}
+> writeTSVmod(modelData = glycolysisModel,
++           modelID = "Glycolysis",
++           outputFile = "glycolysis")
+\end{Sinput}
+\end{Schunk}
+Metabolic models in TSV format can be readed throug the \code{readTSVmod} function included in the \CRANpkg{sybil} package:
+\begin{Schunk}
+\begin{Sinput}
+> sybil::readTSVmod(prefix = "glycolysis",quoteChar = "\"")
+\end{Sinput}
+\begin{Soutput}
+model name:             Glycolysis 
+number of compartments  1 
+                        [c] 
+number of reactions:    19 
+number of metabolites:  18 
+number of unique genes: 22 
+objective function:     +1 R00200 
+\end{Soutput}
+\end{Schunk}
 \section{Summary}
-We introduced the \pkg{minval} package to evaluate mass balancing correctness of metabolic reconstructions and to extract all reactants, products, orphan metabolites, metabolite names and compartments for a set of stoichiometric reactions, which together represent the minimal validation that should be performed in a genome-scale metabolic reconstruction. We also show in a step by step fashion, how this minimal evaluation process of mass balance can be performed using the 128 non-exchange reactions included in the glutamate/glutamine cycle included in the ``\code{glugln}'' dataset. We also showed some examples of metabolite names - ChEBI database association procedures.
+We introduced the \pkg{minval} package to check the syntax validity, evaluate the mass-charge balance and extract all orphan metabolites of a set of stoichiometric reactions. Together, this steps represent the minimal validation that should be performed in a genome-scale metabolic reconstruction. Functions to characterize and export metabolic models in SBML and TSV formats as well as to extract all reactants, products, metabolite names and compartments for a set of stoichiometric reactions were also introduced. Moreover, we also show in a step by step fashion, how this minimal evaluation process of mass balance can avoid an overestimation of the the net yield of pyruvate from an alpha-D-glucose molecule when using an unbalanced model of the glycolysis pathway.
 
 \section{Acknowledgements}
-DO and JG  were supported by the Pontificia Universidad Javeriana (Grant ID 5619, 6371, 6375)
+DO and JG  were supported by the Pontificia Universidad Javeriana (Grant ID 5619, 6235, 6371, 6375). We thank to the anonymous reviewers for their helpful comments and suggestions to improve the package.
 \bibliography{Osorio-Gonzalez-Pinzon.bib}
 
 \address{Daniel Osorio\\
